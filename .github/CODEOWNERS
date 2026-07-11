@@ -1,0 +1,10 @@
+# CODEOWNERS — Copa26 Álbum Digital
+#
+# Revisores obrigatórios de Pull Requests.
+# A proteção da branch `main` exige 1 aprovação; qualquer UM dos donos abaixo
+# pode aprovar o PR.
+#
+# Documentação: https://docs.github.com/pt/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @pedrolucasms2 @Furl4n
+
