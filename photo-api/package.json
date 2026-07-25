@@ -1,0 +1,17 @@
+{
+  "name": "copa26-photo-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API privada de fotos de jogadores/técnicos (auth por x-api-key) para o app Copa26 Álbum Digital. Mantém football-data.org como fonte de dados; esta API serve apenas as imagens, indexadas pelo id do jogador do football-data.org.",
+  "scripts": {
+    "start": "node server.js",
+    "collect": "node scripts/collect-photos.mjs"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

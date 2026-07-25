@@ -1,0 +1,6 @@
+node_modules/
+.env
+photos/players/*
+photos/coaches/*
+!photos/players/.gitkeep
+!photos/coaches/.gitkeep
