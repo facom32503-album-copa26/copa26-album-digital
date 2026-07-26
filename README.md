@@ -12,6 +12,23 @@ Mobile (PDM)**.
 - **Build:** Gradle (Kotlin DSL) + version catalog (`gradle/libs.versions.toml`)
 - **SDK:** `minSdk = 24`, `targetSdk`/`compileSdk = 36`, `JavaVersion.VERSION_11`
 
+## Configuração de `local.properties`
+
+O app consome dados reais da API [football-data.org](https://www.football-data.org) e,
+opcionalmente, de uma API privada de fotos (`photo-api/`). Ambas exigem chaves que **não**
+são versionadas — cada dev cria seu próprio `local.properties` na raiz do projeto:
+
+```bash
+cp local.properties.example local.properties
+# edite local.properties e preencha FOOTBALL_API_TOKEN com seu token
+```
+
+- `FOOTBALL_API_TOKEN`: obrigatório. Sem ele (ou com um token inválido), toda chamada à
+  football-data.org falha e a tela de equipes exibe erro de "competição não encontrada" —
+  crie uma conta gratuita em https://www.football-data.org/client/register para gerar o seu.
+- `PHOTO_API_BASE_URL` / `PHOTO_API_KEY`: só necessários se for rodar a `photo-api/` local
+  (ver `photo-api/README.md`); já vêm com padrão para o emulador Android.
+
 ## Como compilar e executar
 
 Pré-requisitos: Android Studio (recomendado) ou JDK 11 + Android SDK configurados.

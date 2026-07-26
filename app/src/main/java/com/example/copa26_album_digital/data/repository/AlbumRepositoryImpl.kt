@@ -1,5 +1,6 @@
 package com.example.copa26_album_digital.data.repository
 
+import android.util.Log
 import com.example.copa26_album_digital.data.local.SquadSeed
 import com.example.copa26_album_digital.data.local.dao.AlbumDao
 import com.example.copa26_album_digital.data.mapper.toDomain
@@ -32,14 +33,14 @@ class AlbumRepositoryImpl(
 
     override suspend fun getCompetitions(): Result<List<Competition>> =
         withContext(ioDispatcher) {
-            runCatching {
+            val syncError = runCatching {
                 val remote = api.getCompetitions().competitions.map { it.toEntity() }
                 dao.upsertCompetitions(remote)
-            }.onFailureLog()
+            }.onFailureLog().exceptionOrNull()
 
             val cached = dao.getCompetitions()
             if (cached.isEmpty()) {
-                Result.Error("Nenhuma competição disponível (sem rede e sem cache).")
+                Result.Error(syncError.toCacheMissMessage("Nenhuma competição disponível"), syncError)
             } else {
                 Result.Success(cached.map { it.toDomain(teams = emptyList()) })
             }
@@ -47,10 +48,13 @@ class AlbumRepositoryImpl(
 
     override suspend fun getCompetition(code: String): Result<Competition> =
         withContext(ioDispatcher) {
-            runCatching { syncCompetition(code) }.onFailureLog()
+            val syncError = runCatching { syncCompetition(code) }.onFailureLog().exceptionOrNull()
 
             val competition = dao.getCompetitions().firstOrNull { it.code == code }
-                ?: return@withContext Result.Error("Competição '$code' não encontrada.")
+                ?: return@withContext Result.Error(
+                    syncError.toCacheMissMessage("Competição '$code' não encontrada"),
+                    syncError,
+                )
 
             val teams = dao.getTeamsByCompetition(competition.id).map { teamEntity ->
                 val players = dao.getPlayersByTeam(teamEntity.id).map { it.toDomain() }
@@ -112,5 +116,23 @@ class AlbumRepositoryImpl(
     /** Loga falhas de sincronização sem propagá-las, preservando o modo offline. */
     private fun <T> kotlin.Result<T>.onFailureLog(): kotlin.Result<T> = onFailure { error ->
         if (error !is IOException && error !is retrofit2.HttpException) throw error
+        Log.w(TAG, "Falha ao sincronizar com a API remota, mantendo cache local", error)
+    }
+
+    /**
+     * Traduz a causa raiz de uma falha de sincronização (quando não há cache para
+     * cobri-la) em uma mensagem acionável, em vez do genérico "não encontrada" —
+     * que escondia problemas de configuração (ex.: token ausente) e de rede.
+     */
+    private fun Throwable?.toCacheMissMessage(prefix: String): String = when {
+        this is retrofit2.HttpException && (code() == 400 || code() == 401 || code() == 403) ->
+            "$prefix: falha de autenticação na API (verifique FOOTBALL_API_TOKEN em local.properties)."
+        this is retrofit2.HttpException -> "$prefix: a API respondeu com erro HTTP ${code()}."
+        this is IOException -> "$prefix: sem conexão com a internet e sem cache local."
+        else -> "$prefix."
+    }
+
+    private companion object {
+        const val TAG = "AlbumRepository"
     }
 }
