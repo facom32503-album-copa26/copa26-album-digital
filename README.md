@@ -26,6 +26,11 @@ cp local.properties.example local.properties
 - `FOOTBALL_API_TOKEN`: obrigatório. Sem ele (ou com um token inválido), toda chamada à
   football-data.org falha e a tela de equipes exibe erro de "competição não encontrada" —
   crie uma conta gratuita em https://www.football-data.org/client/register para gerar o seu.
+  Validado em 2026-07-28: com um token válido, `GET /v4/competitions/WC/teams` e
+  `GET /v4/teams/{id}` retornam `squad` e `coach` inline mesmo no plano gratuito — o app
+  carrega os 48 times, elenco (26 jogadores) e técnico de cada seleção normalmente.
+  O plano gratuito limita a **10 requisições/minuto** (header `X-Requests-Available-Minute`);
+  navegação muito rápida entre telas pode esbarrar nisso.
 - `PHOTO_API_BASE_URL` / `PHOTO_API_KEY`: só necessários se for rodar a `photo-api/` local
   (ver `photo-api/README.md`); já vêm com padrão para o emulador Android.
 
