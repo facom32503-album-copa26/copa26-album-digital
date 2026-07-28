@@ -35,7 +35,25 @@ curl http://localhost:3000/health
 curl -H "x-api-key: copa26-dev-key" "http://localhost:3000/players/44?name=Neymar" -I
 ```
 
-## Coletar fotos (executa 1x)
+## Coletar fotos com a camisa da selecao (recomendado)
+
+```bash
+FOOTBALL_API_TOKEN=SEU_TOKEN python3 scripts/collect-national-photos.py
+FOOTBALL_API_TOKEN=SEU_TOKEN TEAMS="Brazil,Argentina" python3 scripts/collect-national-photos.py
+```
+
+Usa **Wikidata + Wikimedia Commons**, onde a maior parte das fotos e de jogos de
+selecao — boa parte da propria Copa 2026. Casa o jogador em duas etapas (rotulo
+exato e, para os que sobram, data de nascimento), porque so o nome erra: "Wesley"
+bate num homonimo e "Vinicius Junior" nao bate em "Vinícius Júnior".
+
+Cobertura medida nas 7 selecoes (189 pessoas): 173 com foto.
+
+> **Nem toda foto serve.** Alguns jogadores so tem foto de clube no Commons e
+> outros aparecem de colete de aquecimento por cima da camisa. Confira o
+> resultado antes de publicar — nao ha como automatizar esse julgamento.
+
+## Coletar fotos (alternativa: recorte de clube)
 
 Baixa fotos indexadas pelo id do football-data.org, testando as fontes em ordem
 de eficácia **medida** (162 pessoas de 6 seleções):
