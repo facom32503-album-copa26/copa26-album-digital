@@ -29,23 +29,10 @@ private val WORLD_CUP_TITLES: Map<Int, Int> = mapOf(
     760 to 2, // Espanha (2010 e 2026)
 )
 
-/**
- * Monta a URL da foto na NOSSA API privada de fotos, indexada pelo id do
- * football-data.org (que continua sendo a fonte de dados). O parâmetro `name`
- * serve de fallback: se ainda não coletamos a foto daquele id, a API gera um
- * avatar de iniciais. A requisição é autenticada pelo header `x-api-key`
- * injetado no ImageLoader do Coil (ver AlbumApplication).
- */
-private fun personPhotoUrl(kind: String, id: Int, name: String): String {
-    val base = BuildConfig.PHOTO_API_BASE_URL.trimEnd('/')
-    val encodedName = name.trim().replace(" ", "+")
-    return "$base/$kind/$id?name=$encodedName"
-}
+/** URL estatica da foto, indexada pelo id do football-data.org; sem foto, o avatar cai nas iniciais (ver PersonAvatar). */
+private fun personPhotoUrl(kind: String, id: Int): String =
+    "${BuildConfig.PHOTO_API_BASE_URL.trimEnd('/')}/$kind/$id.webp"
 
-/**
- * Quebra a string livre `clubColors` (ex.: "Sky Blue / White") em hex aproximados
- * conhecidos; mantém o texto original como fallback quando não há mapeamento.
- */
 private fun parseColors(clubColors: String?): List<String> {
     if (clubColors.isNullOrBlank()) return listOf("#1E1E1E", "#FFFFFF")
     return clubColors.split("/", ",")
@@ -84,7 +71,7 @@ fun PersonDto.toPlayerEntity(
     position = position ?: "Indefinido",
     shirtNumber = shirtNumber ?: 0,
     nationality = nationality ?: "—",
-    photoUrl = personPhotoUrl("players", id, name),
+    photoUrl = personPhotoUrl("players", id),
     games = games,
     goals = goals,
     assists = assists,
@@ -99,7 +86,7 @@ fun CoachDto.toEntity(teamId: Int): CoachEntity? {
         id = coachId,
         name = coachName,
         nationality = nationality ?: "—",
-        photoUrl = personPhotoUrl("coaches", coachId, coachName),
+        photoUrl = personPhotoUrl("coaches", coachId),
     )
 }
 

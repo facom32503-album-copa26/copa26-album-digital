@@ -38,30 +38,74 @@ curl -H "x-api-key: copa26-dev-key" "http://localhost:3000/players/44?name=Neyma
 ## Coletar fotos (executa 1x)
 
 Baixa fotos indexadas pelo id do football-data.org, testando as fontes em ordem
-de qualidade (headshots estilo figurinha primeiro):
+de eficácia **medida** (162 pessoas de 6 seleções):
 
-1. **API-Football** (api-sports.io) — headshots oficiais e uniformes (opcional,
-   exige `APIFOOTBALL_KEY`);
-2. **TheSportsDB** — recortes/headshots de jogadores, grátis (chave de teste `3`);
-3. **Wikipedia** — foto em resolução original (fallback).
+1. **TheSportsDB** — 98% de acerto, quase sempre `strCutout` (recorte 500×500 com
+   fundo transparente, formato de figurinha). Grátis, chave de teste `3`;
+2. **API-Football** (api-sports.io) — headshots 150×150 padronizados. O CDN de
+   imagens é público, mas descobrir o id exige `APIFOOTBALL_KEY` (100 req/dia no
+   plano grátis, insuficiente para 1249 jogadores);
+3. **Wikipedia** — fotos com uniforme de seleção, porém limita agressivamente
+   (HTTP 429) e inviabiliza coleta em lote. Último recurso.
 
 ```bash
+# todas as 48 seleções (~1249 jogadores, 20-30 min)
 FOOTBALL_API_TOKEN=SEU_TOKEN npm run collect
-# melhor cobertura/qualidade:
-FOOTBALL_API_TOKEN=SEU_TOKEN APIFOOTBALL_KEY=SUA_CHAVE npm run collect
+
+# apenas algumas seleções
+FOOTBALL_API_TOKEN=SEU_TOKEN TEAMS="Brazil,Argentina,Spain,Germany,France,England" npm run collect
 ```
 
-As imagens são salvas em `photos/players/<id>.<ext>` e `photos/coaches/<id>.<ext>`
-(png/jpg/webp). Projeto acadêmico local: as imagens são usadas apenas para fins
-didáticos.
+Depois da coleta, reduza as imagens (36 MB → 2,5 MB nas 6 seleções):
+
+```bash
+python3 scripts/optimize-photos.py     # requer Pillow
+```
+
+As imagens ficam em `photos/players/<id>.webp` e `photos/coaches/<id>.webp`.
+Projeto acadêmico local: as imagens são usadas apenas para fins didáticos.
+
+> **Uniforme:** os recortes do TheSportsDB são com camisa de **clube**, não de
+> seleção. O enquadramento é do peito para cima, então o uniforme aparece pouco.
+> Nenhuma fonte gratuita oferece uniforme de seleção com cobertura comparável.
+
+## Publicar no Firebase Hosting (para o app funcionar sem servidor local)
+
+Sem isto, só quem roda o servidor Node na própria máquina vê as fotos — quem
+apenas instala o APK não vê nada. O Hosting serve os arquivos estáticos por
+HTTPS, de graça, e o app passa a funcionar em qualquer dispositivo.
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init hosting        # escolha o projeto; "public directory" = photos
+firebase deploy --only hosting
+```
+
+O `firebase.json` deste diretório já vem configurado (`public: photos`, cache de
+1 ano e CORS liberado). Ao final o CLI imprime a URL do projeto; use-a no
+`local.properties` do app:
+
+```
+PHOTO_API_BASE_URL=https://SEU-PROJETO.web.app/
+```
+
+O app monta `<base>/players/<id>.webp` e `<base>/coaches/<id>.webp`. Quem não
+tiver foto (as outras 42 seleções) cai automaticamente nas **iniciais desenhadas
+pelo próprio app** — sem rede e sem serviço externo.
 
 ## Conexão com o app Android
 
-No `local.properties` do projeto Android:
+No `local.properties` do projeto Android, escolha uma das duas bases:
 
 ```
-PHOTO_API_BASE_URL=http://10.0.2.2:3000/   # 10.0.2.2 = localhost visto pelo emulador
+# Produção/entrega — funciona em qualquer aparelho, sem servidor local:
+PHOTO_API_BASE_URL=https://SEU-PROJETO.web.app/
+
+# Desenvolvimento — servidor Node desta pasta (10.0.2.2 = localhost visto pelo emulador):
+PHOTO_API_BASE_URL=http://10.0.2.2:3000/
 PHOTO_API_KEY=copa26-dev-key               # deve bater com o .env desta API
 ```
 
-O app injeta o header `x-api-key` (via Coil) somente nas requisições a este host.
+O app injeta o header `x-api-key` (via Coil) somente nas requisições ao host
+configurado — irrelevante no Firebase, necessário no servidor local.

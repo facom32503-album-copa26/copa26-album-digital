@@ -7,6 +7,9 @@
 # Token da API football-data.org (obtenha em https://www.football-data.org/client/register)
 FOOTBALL_API_TOKEN=SEU_TOKEN_AQUI
 
-# API privada de fotos (servidor Node em photo-api/) — ver photo-api/README.md
-PHOTO_API_BASE_URL=http://10.0.2.2:3000/
+# Fotos de jogadores/tecnicos — ver photo-api/README.md
+# Entrega: URL publica do Firebase Hosting (funciona em qualquer aparelho).
+PHOTO_API_BASE_URL=https://SEU-PROJETO.web.app/
+# Desenvolvimento com o servidor Node local (emulador):
+# PHOTO_API_BASE_URL=http://10.0.2.2:3000/
 PHOTO_API_KEY=copa26-dev-key
