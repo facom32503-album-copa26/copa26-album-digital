@@ -1,5 +1,6 @@
 package com.example.copa26_album_digital.ui.competition
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +32,30 @@ import com.example.copa26_album_digital.R
 import com.example.copa26_album_digital.ui.theme.AlbumBackground
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
 import com.example.copa26_album_digital.ui.theme.Copa26albumdigitalTheme
+
+/** Foto de capa com véu escuro por cima; a foto é clara e engoliria o texto branco sem ele. */
+@Composable
+private fun CompetitionBackdrop(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.competition_background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to AlbumBackground.copy(alpha = 0.45f),
+                        0.45f to AlbumBackground.copy(alpha = 0.70f),
+                        1f to AlbumBackground.copy(alpha = 0.97f)
+                    )
+                )
+        )
+    }
+}
 
 /**
  * Tela inicial do álbum: capa da Copa do Mundo 2026 e ação para ver as equipes.
@@ -43,6 +71,8 @@ fun CompetitionScreen(
             .fillMaxSize()
             .background(AlbumBackground)
     ) {
+        CompetitionBackdrop()
+
         // Etiqueta superior "Álbum Oficial"
         Box(
             modifier = Modifier
