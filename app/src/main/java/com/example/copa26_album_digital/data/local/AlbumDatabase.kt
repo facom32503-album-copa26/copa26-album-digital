@@ -19,7 +19,8 @@ import com.example.copa26_album_digital.data.local.entity.TeamEntity
         PlayerEntity::class,
         CoachEntity::class,
     ],
-    version = 1,
+    // v2: TeamEntity.description → venue e remoção de CoachEntity.profile.
+    version = 2,
     exportSchema = false,
 )
 abstract class AlbumDatabase : RoomDatabase() {

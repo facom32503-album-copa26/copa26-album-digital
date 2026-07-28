@@ -26,7 +26,7 @@ private val WORLD_CUP_TITLES: Map<Int, Int> = mapOf(
     773 to 2, // França
     758 to 2, // Uruguai
     770 to 1, // Inglaterra
-    760 to 1, // Espanha
+    760 to 2, // Espanha (2010 e 2026)
 )
 
 /**
@@ -65,7 +65,7 @@ fun TeamDto.toEntity(competitionId: Int): TeamEntity = TeamEntity(
     shortName = shortName ?: name,
     crestUrl = crest ?: PLACEHOLDER_CREST,
     colors = parseColors(clubColors).joinToString("|"),
-    description = venue?.let { "Manda seus jogos em $it." }.orEmpty(),
+    venue = venue.orEmpty(),
     victories = WORLD_CUP_TITLES[id] ?: 0,
 )
 
@@ -100,7 +100,6 @@ fun CoachDto.toEntity(teamId: Int): CoachEntity? {
         name = coachName,
         nationality = nationality ?: "—",
         photoUrl = personPhotoUrl("coaches", coachId, coachName),
-        profile = "Treinador da equipe.",
     )
 }
 
@@ -121,7 +120,6 @@ fun CoachEntity.toDomain(): Coach = Coach(
     name = name,
     nationality = nationality,
     photoUrl = photoUrl,
-    profile = profile,
 )
 
 fun TeamEntity.toDomain(players: List<Player>, coach: Coach?): Team = Team(
@@ -130,7 +128,7 @@ fun TeamEntity.toDomain(players: List<Player>, coach: Coach?): Team = Team(
     shortName = shortName,
     crestUrl = crestUrl,
     colors = colors.split("|").filter { it.isNotEmpty() },
-    description = description,
+    venue = venue,
     victories = victories,
     players = players,
     coach = coach,

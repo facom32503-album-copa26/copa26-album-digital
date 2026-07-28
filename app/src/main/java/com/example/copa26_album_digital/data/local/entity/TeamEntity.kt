@@ -21,6 +21,7 @@ data class TeamEntity(
     val shortName: String,
     val crestUrl: String,
     val colors: String,
-    val description: String,
+    /** Nome do estádio, cru — a frase exibida é montada na UI. */
+    val venue: String,
     val victories: Int,
 )

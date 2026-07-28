@@ -43,24 +43,21 @@ class PersonViewModel(
     fun load() {
         _uiState.value = PersonUiState(isLoading = true)
         viewModelScope.launch {
-            when (val result = repository.getTeam(teamId)) {
-                is Result.Success -> {
-                    val team = result.data
-                    val player = team.players.firstOrNull { it.id == personId }
-                    val coach = team.coach?.takeIf { it.id == personId }
-                    // Sem jogador nem técnico: deixa player/coach nulos e a View
-                    // exibe a mensagem localizada (person_not_found).
-                    _uiState.value = PersonUiState(
-                        isLoading = false,
-                        player = player,
-                        coach = coach,
-                    )
-                }
-                is Result.Error -> _uiState.value = PersonUiState(
-                    isLoading = false,
-                    errorMessage = result.message,
-                )
+            // Lê do cache: a equipe já gravou elenco e técnico, e re-sincronizar custaria 2 requisições.
+            val playerResult = repository.getPlayer(personId)
+            if (playerResult is Result.Success) {
+                _uiState.value = PersonUiState(isLoading = false, player = playerResult.data)
+                return@launch
             }
+
+            // Sem jogador com esse id: pode ser o técnico. Se não for, a View exibe person_not_found.
+            val coachResult = repository.getCoach(teamId)
+            val coach = if (coachResult is Result.Success && coachResult.data.id == personId) {
+                coachResult.data
+            } else {
+                null
+            }
+            _uiState.value = PersonUiState(isLoading = false, coach = coach)
         }
     }
 

@@ -8,54 +8,29 @@
     <string name="competition_title_line2">Mundo</string>
     <string name="competition_year">2026</string>
     <string name="competition_hosts">USA · CANADÁ · MÉXICO</string>
-    <string name="competition_summary">32 SELEÇÕES · 48 JOGOS</string>
+    <string name="competition_summary">48 SELEÇÕES · 104 JOGOS</string>
     <string name="action_see_teams">Ver Equipes →</string>
     <string name="action_retry">TENTAR NOVAMENTE</string>
 
     <!-- Equipes -->
     <string name="teams_title">EQUIPES</string>
-    <string name="teams_count">32 TIMES</string>
-    <string name="teams_section_champions">Maiores Campeões</string>
     <string name="teams_section_all">Seleções participantes</string>
-    <string name="teams_locked_desc">Equipe bloqueada</string>
     <string name="team_not_found">Equipe não encontrada.</string>
 
     <!-- Detalhe da equipe -->
-    <string name="team_back_teams">Equipes</string>
-    <string name="team_label_selection">SELEÇÃO</string>
-    <string name="team_colors">Cores oficiais</string>
-    <string name="team_section_world_cups">Copas do Mundo</string>
-    <string name="team_section_goalkeepers">Goleiros</string>
-    <string name="team_section_defenders">Defensores</string>
-    <string name="team_section_midfield">Meio-Campo</string>
-    <string name="team_section_forwards">Atacantes</string>
+    <string name="team_venue">Manda seus jogos em %1$s.</string>
     <string name="team_section_squad">Elenco (%1$d)</string>
     <string name="team_section_coach">Comissão Técnica</string>
-    <string name="team_section_staff">Comissão Técnica</string>
-    <string name="team_head_coach">TÉCNICO PRINCIPAL</string>
     <string name="role_coach">Técnico</string>
 
     <!-- Detalhe da pessoa -->
-    <string name="person_back_team">Equipe</string>
-    <string name="person_section_performance">Desempenho</string>
     <string name="person_section_stats">Estatísticas</string>
     <string name="person_section_profile">Perfil</string>
     <string name="person_not_found">Pessoa não encontrada.</string>
-    <string name="person_stat_caps">Convocações</string>
     <string name="person_stat_goals">Gols</string>
     <string name="person_stat_assists">Assistências</string>
-    <string name="person_stat_goal_involvement">Participação em gols</string>
-    <string name="person_stat_clean_sheets">Jogos sem sofrer gols</string>
-    <string name="person_stat_matches">Partidas disputadas</string>
     <string name="person_stat_games">Jogos</string>
-    <string name="person_stat_wins">Vitórias</string>
-    <string name="person_stat_draws">Empates</string>
-    <string name="person_stat_losses">Derrotas</string>
-    <string name="person_stat_win_rate">Aproveitamento (%)</string>
-    <string name="person_stat_ppg">Pontos por jogo</string>
-    <string name="person_footer_title">SELEÇÃO BRASILEIRA · CBF</string>
-    <string name="person_footer_subtitle">Copa do Mundo FIFA 2026</string>
-    <string name="person_nationality_brazilian">Brasileiro</string>
+    <string name="coach_profile">Treinador da equipe.</string>
 
     <!-- Carregamento -->
     <string name="loading_step_init">Inicializando álbum…</string>
@@ -66,16 +41,9 @@
     <!-- Acessibilidade / conteúdo -->
     <string name="cd_crest_cbf">Escudo da CBF</string>
     <string name="cd_back">Voltar</string>
-    <string name="cd_locked">Bloqueado</string>
-    <string name="cd_forward">Avançar</string>
-    <string name="cd_trophy">Troféu</string>
     <string name="cd_team_crest">Escudo da seleção %1$s</string>
 
     <!-- Formatação -->
-    <string name="format_age_years">%1$d anos</string>
     <string name="format_titles">%1$d×</string>
     <string name="format_teams_count">%1$d TIMES</string>
-    <string name="format_shirt_number">#%1$d</string>
-    <string name="format_coach_record">%1$dV · %2$dE · %3$dD em %4$d jogos</string>
-    <string name="format_club_age">🏟 %1$s · %2$d anos</string>
 </resources>

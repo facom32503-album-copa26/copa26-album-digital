@@ -17,15 +17,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.copa26_album_digital.R
 import com.example.copa26_album_digital.ui.theme.AlbumBackground
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import com.example.copa26_album_digital.ui.theme.Copa26albumdigitalTheme
 
 /**
  * Tela inicial do álbum: capa da Copa do Mundo 2026 e ação para ver as equipes.
@@ -140,5 +142,13 @@ fun CompetitionScreen(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Capa do álbum")
+@Composable
+private fun CompetitionPreview() {
+    Copa26albumdigitalTheme {
+        CompetitionScreen(onSeeTeams = {})
     }
 }

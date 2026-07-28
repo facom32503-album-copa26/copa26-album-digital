@@ -1,5 +1,6 @@
 package com.example.copa26_album_digital.domain.repository
 
+import com.example.copa26_album_digital.domain.model.Coach
 import com.example.copa26_album_digital.domain.model.Competition
 import com.example.copa26_album_digital.domain.model.Player
 import com.example.copa26_album_digital.domain.model.Team
@@ -31,6 +32,9 @@ interface AlbumRepository {
     /** Carrega uma equipe com elenco e treinador (TeamScreen). */
     suspend fun getTeam(teamId: Int): Result<Team>
 
-    /** Carrega o detalhe de um jogador (PlayerDetailScreen). */
+    /** Carrega o detalhe de um jogador a partir do cache (PlayerDetailScreen). */
     suspend fun getPlayer(playerId: Int): Result<Player>
+
+    /** Carrega o técnico de uma equipe a partir do cache (PlayerDetailScreen). */
+    suspend fun getCoach(teamId: Int): Result<Coach>
 }

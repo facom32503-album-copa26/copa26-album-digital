@@ -45,7 +45,7 @@ class TeamsViewModelTest {
         shortName = name,
         crestUrl = "url",
         colors = listOf("Sky Blue", "White"),
-        description = "",
+        venue = "",
         victories = 3,
         players = emptyList(),
         coach = null,

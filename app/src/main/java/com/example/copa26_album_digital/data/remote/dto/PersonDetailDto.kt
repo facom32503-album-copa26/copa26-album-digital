@@ -47,3 +47,15 @@ data class ScorerDto(
     @Json(name = "goals") val goals: Int?,
     @Json(name = "assists") val assists: Int?,
 )
+
+/** Resposta de `GET /v4/persons/{id}/matches`; `aggregations` é omitido de propósito — no plano gratuito vem como String. */
+@JsonClass(generateAdapter = true)
+data class PersonMatchesDto(
+    @Json(name = "resultSet") val resultSet: ResultSetDto,
+)
+
+/** Metadados do conjunto de resultados; `count` é o total de partidas do filtro. */
+@JsonClass(generateAdapter = true)
+data class ResultSetDto(
+    @Json(name = "count") val count: Int,
+)

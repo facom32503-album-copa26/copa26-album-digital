@@ -14,5 +14,4 @@ data class CoachEntity(
     val name: String,
     val nationality: String,
     val photoUrl: String,
-    val profile: String,
 )

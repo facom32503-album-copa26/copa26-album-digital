@@ -23,3 +23,7 @@ data class PlayerEntity(
     val goals: Int,
     val assists: Int,
 )
+
+/** Indica se o jogador já teve alguma estatística sincronizada. */
+val PlayerEntity.hasStats: Boolean
+    get() = games > 0 || goals > 0 || assists > 0

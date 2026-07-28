@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.copa26_album_digital.R
@@ -37,9 +38,11 @@ import com.example.copa26_album_digital.ui.components.CrestImage
 import com.example.copa26_album_digital.ui.components.ErrorState
 import com.example.copa26_album_digital.ui.components.LoadingState
 import com.example.copa26_album_digital.ui.components.PersonAvatar
+import com.example.copa26_album_digital.ui.preview.PreviewData
 import com.example.copa26_album_digital.ui.theme.AlbumBackground
 import com.example.copa26_album_digital.ui.theme.AlbumSurface
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
+import com.example.copa26_album_digital.ui.theme.Copa26albumdigitalTheme
 
 /**
  * Detalhe da equipe: identidade visual, elenco (ordenado por número) e comissão
@@ -90,10 +93,10 @@ private fun TeamContent(
             TeamHeader(team = team, onBack = onBack)
         }
 
-        if (team.description.isNotBlank()) {
+        if (team.venue.isNotBlank()) {
             item {
                 Text(
-                    text = team.description,
+                    text = stringResource(R.string.team_venue, team.venue),
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
@@ -328,5 +331,20 @@ private fun PlayerCard(
                 maxLines = 1
             )
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Detalhe da equipe")
+@Composable
+private fun TeamDetailPreview() {
+    Copa26albumdigitalTheme {
+        TeamDetailScreen(
+            isLoading = false,
+            team = PreviewData.team,
+            errorMessage = null,
+            onRetry = {},
+            onBack = {},
+            onSelectPerson = {}
+        )
     }
 }

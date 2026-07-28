@@ -5,8 +5,9 @@ import com.example.copa26_album_digital.data.local.entity.CompetitionEntity
 import com.example.copa26_album_digital.data.local.entity.PlayerEntity
 import com.example.copa26_album_digital.data.local.entity.TeamEntity
 import com.example.copa26_album_digital.data.remote.FootballApi
-import com.example.copa26_album_digital.data.remote.dto.CompetitionDto
 import com.example.copa26_album_digital.data.remote.dto.PersonDto
+import com.example.copa26_album_digital.data.remote.dto.PersonMatchesDto
+import com.example.copa26_album_digital.data.remote.dto.ResultSetDto
 import com.example.copa26_album_digital.data.remote.dto.ScorerDto
 import com.example.copa26_album_digital.data.remote.dto.ScorersDto
 import com.example.copa26_album_digital.data.remote.dto.TeamDto
@@ -46,7 +47,7 @@ class AlbumRepositoryImplTest {
         shortName = "Argentina",
         crestUrl = "url",
         colors = "Sky Blue|White",
-        description = "",
+        venue = "",
         victories = 3,
     )
 
@@ -169,5 +170,106 @@ class AlbumRepositoryImplTest {
         val messi = captured.captured.first { it.id == 3218 }
         assertEquals(0, messi.goals) // sem artilheiros → estatísticas zeradas, sem crash
         coVerify { dao.upsertPlayers(any()) }
+    }
+
+    @Test
+    fun `re-sincronizar nao apaga estatisticas ja gravadas no cache`() = runTest {
+        // Regressão: o upsert REPLACE regravava 0/0/0 em quem não estava no ranking daquela resposta.
+        coEvery { api.getTeam(762) } returns TeamDto(
+            id = 762,
+            name = "Argentina",
+            shortName = "Argentina",
+            crest = null,
+            clubColors = null,
+            founded = 1893,
+            venue = null,
+            coach = null,
+            squad = listOf(
+                PersonDto(3218, "Lionel Messi", "Offence", null, "Argentina", 10),
+            ),
+        )
+        coEvery { dao.getTeam(762) } returns teamEntity(762, 2000)
+        coEvery { dao.getCoachByTeam(762) } returns null
+        // Messi já tem estatísticas em cache de uma sincronização anterior.
+        coEvery { dao.getPlayersByTeam(762) } returns listOf(
+            PlayerEntity(
+                id = 3218,
+                teamId = 762,
+                name = "Lionel Messi",
+                position = "Offence",
+                shirtNumber = 10,
+                nationality = "Argentina",
+                photoUrl = "url",
+                games = 8,
+                goals = 8,
+                assists = 4,
+            ),
+        )
+
+        val captured = slot<List<PlayerEntity>>()
+        coEvery { dao.upsertPlayers(capture(captured)) } returns Unit
+
+        repository().getTeam(762)
+
+        val messi = captured.captured.first { it.id == 3218 }
+        assertEquals(8, messi.games)
+        assertEquals(8, messi.goals)
+        assertEquals(4, messi.assists)
+        coVerify(exactly = 0) { api.getScorers(any(), any()) }
+    }
+
+    private fun playerEntity(id: Int, teamId: Int, games: Int) = PlayerEntity(
+        id = id,
+        teamId = teamId,
+        name = "Emiliano Martínez",
+        position = "Goalkeeper",
+        shirtNumber = 23,
+        nationality = "Argentina",
+        photoUrl = "url",
+        games = games,
+        goals = 0,
+        assists = 0,
+    )
+
+    @Test
+    fun `getPlayer busca jogos de quem nao esta no ranking de artilheiros`() = runTest {
+        // Goleiros e defensores nunca aparecem em /scorers: os jogos vêm de /persons/{id}/matches.
+        coEvery { dao.getPlayer(6) } returns playerEntity(id = 6, teamId = 762, games = 0)
+        coEvery { dao.getTeam(762) } returns teamEntity(762, 2000)
+        coEvery { dao.getCompetitions() } returns listOf(
+            CompetitionEntity(2000, "FIFA World Cup", "WC", "2026", "url"),
+        )
+        coEvery { api.getPersonMatches(6, "WC", any()) } returns PersonMatchesDto(ResultSetDto(count = 7))
+
+        val result = repository().getPlayer(6)
+
+        assertTrue(result is Result.Success)
+        assertEquals(7, (result as Result.Success).data.stats.games)
+        coVerify { dao.upsertPlayers(match { list -> list.single().games == 7 }) }
+    }
+
+    @Test
+    fun `getPlayer nao gasta requisicao quando ja tem jogos em cache`() = runTest {
+        coEvery { dao.getPlayer(6) } returns playerEntity(id = 6, teamId = 762, games = 7)
+
+        val result = repository().getPlayer(6)
+
+        assertEquals(7, (result as Result.Success).data.stats.games)
+        coVerify(exactly = 0) { api.getPersonMatches(any(), any(), any()) }
+    }
+
+    @Test
+    fun `getPlayer mantem o cache quando a busca de jogos falha`() = runTest {
+        coEvery { dao.getPlayer(6) } returns playerEntity(id = 6, teamId = 762, games = 0)
+        coEvery { dao.getTeam(762) } returns teamEntity(762, 2000)
+        coEvery { dao.getCompetitions() } returns listOf(
+            CompetitionEntity(2000, "FIFA World Cup", "WC", "2026", "url"),
+        )
+        coEvery { api.getPersonMatches(any(), any(), any()) } throws IOException("offline")
+
+        val result = repository().getPlayer(6)
+
+        assertTrue(result is Result.Success)
+        assertEquals(0, (result as Result.Success).data.stats.games)
     }
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.copa26_album_digital.R
@@ -36,9 +37,11 @@ import com.example.copa26_album_digital.ui.components.ErrorState
 import com.example.copa26_album_digital.ui.components.LoadingState
 import com.example.copa26_album_digital.ui.components.PersonAvatar
 import com.example.copa26_album_digital.ui.components.StatBar
+import com.example.copa26_album_digital.ui.preview.PreviewData
 import com.example.copa26_album_digital.ui.theme.AlbumBackground
 import com.example.copa26_album_digital.ui.theme.AlbumSurface
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
+import com.example.copa26_album_digital.ui.theme.Copa26albumdigitalTheme
 import com.example.copa26_album_digital.ui.theme.StatBlue
 import com.example.copa26_album_digital.ui.theme.StatGreen
 import com.example.copa26_album_digital.ui.theme.StatRed
@@ -211,22 +214,20 @@ private fun CoachDetail(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        if (coach.profile.isNotBlank()) {
-            Spacer(Modifier.size(24.dp))
-            Text(
-                text = stringResource(R.string.person_section_profile).uppercase(),
-                color = Color.White.copy(alpha = 0.3f),
-                fontSize = 10.sp,
-                letterSpacing = 3.sp,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            Text(
-                text = coach.profile,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp,
-                lineHeight = 21.sp
-            )
-        }
+        Spacer(Modifier.size(24.dp))
+        Text(
+            text = stringResource(R.string.person_section_profile).uppercase(),
+            color = Color.White.copy(alpha = 0.3f),
+            fontSize = 10.sp,
+            letterSpacing = 3.sp,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        Text(
+            text = stringResource(R.string.coach_profile),
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            lineHeight = 21.sp
+        )
     }
 }
 
@@ -264,6 +265,34 @@ private fun StatCell(label: String, value: String, modifier: Modifier = Modifier
             color = Color.White.copy(alpha = 0.4f),
             fontSize = 9.sp,
             letterSpacing = 1.sp
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Detalhe do jogador")
+@Composable
+private fun PlayerDetailPreview() {
+    Copa26albumdigitalTheme {
+        PersonDetailScreen(
+            isLoading = false,
+            player = PreviewData.player,
+            coach = null,
+            errorMessage = null,
+            onBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Detalhe do técnico")
+@Composable
+private fun CoachDetailPreview() {
+    Copa26albumdigitalTheme {
+        PersonDetailScreen(
+            isLoading = false,
+            player = null,
+            coach = PreviewData.coach,
+            errorMessage = null,
+            onBack = {}
         )
     }
 }

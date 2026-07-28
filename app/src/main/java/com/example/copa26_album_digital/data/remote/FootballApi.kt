@@ -3,6 +3,7 @@ package com.example.copa26_album_digital.data.remote
 import com.example.copa26_album_digital.data.remote.dto.CompetitionDto
 import com.example.copa26_album_digital.data.remote.dto.CompetitionTeamsDto
 import com.example.copa26_album_digital.data.remote.dto.PersonDetailDto
+import com.example.copa26_album_digital.data.remote.dto.PersonMatchesDto
 import com.example.copa26_album_digital.data.remote.dto.ScorersDto
 import com.example.copa26_album_digital.data.remote.dto.TeamDto
 import retrofit2.http.GET
@@ -41,6 +42,28 @@ interface FootballApi {
     @GET("v4/competitions/{code}/scorers")
     suspend fun getScorers(
         @Path("code") code: String,
-        @Query("limit") limit: Int = 100,
+        @Query("limit") limit: Int = ALL_SCORERS_LIMIT,
     ): ScorersDto
+
+    /**
+     * Partidas de um jogador na competição. Serve para contar jogos disputados de
+     * quem não aparece no ranking de artilheiros (goleiros, defensores).
+     *
+     * `limit` precisa cobrir todas as partidas: `resultSet.count` reflete o
+     * conjunto paginado, então um limite baixo devolve um total menor que o real.
+     */
+    @GET("v4/persons/{id}/matches")
+    suspend fun getPersonMatches(
+        @Path("id") id: Int,
+        @Query("competitions") competitions: String,
+        @Query("limit") limit: Int = MAX_PAGE_LIMIT,
+    ): PersonMatchesDto
+
+    companion object {
+        /** Acima do total de artilheiros de uma Copa (179 em 2026), para trazer a lista inteira. */
+        const val ALL_SCORERS_LIMIT = 200
+
+        /** Teto de paginação aceito pela API. */
+        const val MAX_PAGE_LIMIT = 100
+    }
 }

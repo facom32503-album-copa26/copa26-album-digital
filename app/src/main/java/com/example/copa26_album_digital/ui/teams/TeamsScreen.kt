@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.copa26_album_digital.R
@@ -37,9 +38,11 @@ import com.example.copa26_album_digital.domain.model.Team
 import com.example.copa26_album_digital.ui.components.CrestImage
 import com.example.copa26_album_digital.ui.components.ErrorState
 import com.example.copa26_album_digital.ui.components.LoadingState
+import com.example.copa26_album_digital.ui.preview.PreviewData
 import com.example.copa26_album_digital.ui.theme.AlbumBackground
 import com.example.copa26_album_digital.ui.theme.AlbumSurface
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
+import com.example.copa26_album_digital.ui.theme.Copa26albumdigitalTheme
 
 /**
  * Grade de equipes participantes da competição. View "burra": renderiza o estado
@@ -205,5 +208,35 @@ private fun TeamCard(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Equipes")
+@Composable
+private fun TeamsPreview() {
+    Copa26albumdigitalTheme {
+        TeamsScreen(
+            isLoading = false,
+            teams = PreviewData.teams,
+            errorMessage = null,
+            onRetry = {},
+            onBack = {},
+            onSelectTeam = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Equipes — erro")
+@Composable
+private fun TeamsErrorPreview() {
+    Copa26albumdigitalTheme {
+        TeamsScreen(
+            isLoading = false,
+            teams = emptyList(),
+            errorMessage = "Sem conexão com a internet e sem cache local.",
+            onRetry = {},
+            onBack = {},
+            onSelectTeam = {}
+        )
     }
 }
