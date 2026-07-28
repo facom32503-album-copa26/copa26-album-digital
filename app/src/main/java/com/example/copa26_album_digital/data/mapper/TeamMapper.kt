@@ -15,6 +15,21 @@ import com.example.copa26_album_digital.domain.model.Team
 private const val PLACEHOLDER_CREST = "https://via.placeholder.com/150?text=Escudo"
 
 /**
+ * Títulos reais de Copa do Mundo por seleção, indexados pelo id da equipe na
+ * football-data.org. Como a API não expõe conquistas, mantemos este mapa fixo
+ * (dado histórico e estável). Seleções fora do mapa contam 0.
+ */
+private val WORLD_CUP_TITLES: Map<Int, Int> = mapOf(
+    764 to 5, // Brasil
+    759 to 4, // Alemanha
+    762 to 3, // Argentina
+    773 to 2, // França
+    758 to 2, // Uruguai
+    770 to 1, // Inglaterra
+    760 to 1, // Espanha
+)
+
+/**
  * Monta a URL da foto na NOSSA API privada de fotos, indexada pelo id do
  * football-data.org (que continua sendo a fonte de dados). O parâmetro `name`
  * serve de fallback: se ainda não coletamos a foto daquele id, a API gera um
@@ -40,8 +55,8 @@ private fun parseColors(clubColors: String?): List<String> {
 
 /**
  * Converte o DTO de equipe em entidade de cache, associando-a à sua competição.
- * O número de vitórias é estimado pelo ano de fundação como selo simbólico, já
- * que a API não expõe títulos diretamente.
+ * O número de títulos vem do mapa fixo [WORLD_CUP_TITLES] (dado histórico), já
+ * que a API não expõe conquistas.
  */
 fun TeamDto.toEntity(competitionId: Int): TeamEntity = TeamEntity(
     id = id,
@@ -51,11 +66,18 @@ fun TeamDto.toEntity(competitionId: Int): TeamEntity = TeamEntity(
     crestUrl = crest ?: PLACEHOLDER_CREST,
     colors = parseColors(clubColors).joinToString("|"),
     description = venue?.let { "Manda seus jogos em $it." }.orEmpty(),
-    victories = founded?.let { ((2026 - it) / 25).coerceIn(0, 6) } ?: 0,
+    victories = WORLD_CUP_TITLES[id] ?: 0,
 )
 
-/** Converte um jogador do `squad` em entidade de cache (estatísticas zeradas). */
-fun PersonDto.toPlayerEntity(teamId: Int): PlayerEntity = PlayerEntity(
+/** Converte um jogador do `squad` em entidade de cache. As estatísticas de
+ * desempenho (jogos/gols/assistências) vêm do endpoint de artilheiros da
+ * competição; quem não aparece na lista fica zerado. */
+fun PersonDto.toPlayerEntity(
+    teamId: Int,
+    games: Int = 0,
+    goals: Int = 0,
+    assists: Int = 0,
+): PlayerEntity = PlayerEntity(
     id = id,
     teamId = teamId,
     name = name,
@@ -63,9 +85,9 @@ fun PersonDto.toPlayerEntity(teamId: Int): PlayerEntity = PlayerEntity(
     shirtNumber = shirtNumber ?: 0,
     nationality = nationality ?: "—",
     photoUrl = personPhotoUrl("players", id, name),
-    games = 0,
-    goals = 0,
-    assists = 0,
+    games = games,
+    goals = goals,
+    assists = assists,
 )
 
 /** Converte o treinador do DTO de equipe em entidade de cache. */

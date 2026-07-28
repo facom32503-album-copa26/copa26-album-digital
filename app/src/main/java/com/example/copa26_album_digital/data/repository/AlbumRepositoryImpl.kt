@@ -92,11 +92,28 @@ class AlbumRepositoryImpl(
         val teams = api.getCompetitionTeams(code).teams
         dao.upsertTeams(teams.map { it.toEntity(competition.id) })
 
+        // As estatísticas de desempenho (jogos/gols/assistências) não vêm no
+        // endpoint de elenco. Buscamos os artilheiros da competição e casamos
+        // pelo id do jogador. É best-effort: se falhar, os jogadores ficam com
+        // estatísticas zeradas em vez de quebrar toda a sincronização.
+        val statsByPlayerId = runCatching { api.getScorers(code).scorers }
+            .onFailure { Log.w(TAG, "Falha ao buscar artilheiros para enriquecer estatísticas", it) }
+            .getOrDefault(emptyList())
+            .associateBy { it.player.id }
+
         // Em competições de seleções (ex.: Copa do Mundo), a lista de equipes já
         // traz o elenco e o treinador inline — persistimos de imediato.
         teams.forEach { team ->
             team.coach?.toEntity(team.id)?.let { dao.upsertCoach(it) }
-            val players = team.squad.orEmpty().map { it.toPlayerEntity(team.id) }
+            val players = team.squad.orEmpty().map { person ->
+                val stats = statsByPlayerId[person.id]
+                person.toPlayerEntity(
+                    teamId = team.id,
+                    games = stats?.playedMatches ?: 0,
+                    goals = stats?.goals ?: 0,
+                    assists = stats?.assists ?: 0,
+                )
+            }
             if (players.isNotEmpty()) dao.upsertPlayers(players)
         }
     }
@@ -108,7 +125,29 @@ class AlbumRepositoryImpl(
         val coach = team.coach?.toEntity(teamId) ?: squadSeed.coachFor(teamId)
         coach?.let { dao.upsertCoach(it) }
 
-        val remotePlayers = team.squad.orEmpty().map { it.toPlayerEntity(teamId) }
+        // As estatísticas (jogos/gols/assistências) vêm do endpoint de artilheiros
+        // da competição — não do detalhe da equipe. Descobrimos o código da
+        // competição pelo cache (populado ao abrir a tela inicial) e casamos os
+        // artilheiros pelo id do jogador. Best-effort: falha mantém stats zeradas.
+        val competitionCode = dao.getTeam(teamId)?.competitionId?.let { compId ->
+            dao.getCompetitions().firstOrNull { it.id == compId }?.code
+        }
+        val statsByPlayerId = competitionCode?.let { code ->
+            runCatching { api.getScorers(code).scorers }
+                .onFailure { Log.w(TAG, "Falha ao buscar artilheiros para enriquecer estatísticas", it) }
+                .getOrDefault(emptyList())
+                .associateBy { it.player.id }
+        }.orEmpty()
+
+        val remotePlayers = team.squad.orEmpty().map { person ->
+            val stats = statsByPlayerId[person.id]
+            person.toPlayerEntity(
+                teamId = teamId,
+                games = stats?.playedMatches ?: 0,
+                goals = stats?.goals ?: 0,
+                assists = stats?.assists ?: 0,
+            )
+        }
         val players = remotePlayers.ifEmpty { squadSeed.playersFor(teamId) }
         if (players.isNotEmpty()) dao.upsertPlayers(players)
     }

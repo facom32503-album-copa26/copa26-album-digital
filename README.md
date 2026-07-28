@@ -56,16 +56,149 @@ ou instale o APK de debug gerado em `app/build/outputs/apk/debug/`.
 
 ## Estrutura do Projeto
 
+O código segue a arquitetura **MVVM** com separação clara em camadas
+(`data` → `domain` → `ui`):
+
 ```
 app/src/main/java/com/example/copa26_album_digital/
-├── MainActivity.kt          # Ponto de entrada (ComponentActivity + setContent)
-└── ui/theme/                # Tema Material 3 (Theme.kt, Color.kt, Type.kt)
-app/src/main/res/            # Recursos (drawable, values/strings.xml, etc.)
-gradle/libs.versions.toml    # Version catalog (todas as dependências)
-.github/instructions/        # Diretrizes de desenvolvimento (MVVM, Compose, etc.)
+├── MainActivity.kt                # Ponto de entrada + NavHost (Navigation Compose)
+├── data/
+│   ├── remote/                    # Camada de rede (Retrofit + Moshi)
+│   │   ├── FootballApi.kt         # Interface dos endpoints football-data.org
+│   │   ├── AuthInterceptor.kt     # Injeta o header X-Auth-Token
+│   │   └── dto/                   # DTOs de request/response (Moshi)
+│   ├── local/                     # Cache offline (Room)
+│   │   ├── dao/AlbumDao.kt        # Operações de leitura/escrita
+│   │   ├── entity/                # Entidades persistidas (competitions, teams, players…)
+│   │   └── SquadSeed.kt           # Fallback de elenco/treinador (plano gratuito)
+│   ├── mapper/TeamMapper.kt       # DTO → entidade → modelo de domínio
+│   └── repository/                # AlbumRepositoryImpl (offline-first)
+├── domain/
+│   ├── model/                     # Modelos de domínio (Competition, Team, Player…)
+│   ├── repository/AlbumRepository.kt  # Contrato consumido pelos ViewModels
+│   └── util/Result.kt             # Envólucro Success/Error
+└── ui/
+    ├── teams/                     # TeamsScreen + TeamsViewModel + TeamsUiState
+    ├── team/                      # TeamScreen + TeamViewModel
+    ├── person/                    # PlayerDetailScreen + PersonViewModel
+    └── theme/                     # Tema Material 3 (Theme.kt, Color.kt, Type.kt)
+app/src/test/java/…                # Testes unitários (JUnit + MockK + coroutines-test)
+app/src/main/res/                  # Recursos (drawable, values/strings.xml, etc.)
+gradle/libs.versions.toml          # Version catalog (todas as dependências)
+.github/instructions/              # Diretrizes de desenvolvimento (MVVM, Compose, etc.)
 ```
 
+## Fluxo de Dados (MVVM)
+
+O app implementa **MVVM** com um repositório **offline-first**. A View (Compose) é
+"burra": apenas observa estado e emite eventos; toda a lógica vive no `ViewModel` e no
+repositório. O fluxo entre as camadas é sempre **unidirecional**:
+
+```mermaid
+flowchart LR
+    subgraph View["View (Compose)"]
+        TS[TeamsScreen]
+    end
+    subgraph ViewModel["ViewModel"]
+        VM[TeamsViewModel]
+        ST[TeamsUiState]
+    end
+    subgraph Domain["Domain"]
+        REPO[AlbumRepository - contrato]
+    end
+    subgraph Data["Data"]
+        IMPL[AlbumRepositoryImpl - offline-first]
+        API[FootballApi - Retrofit/Moshi]
+        DAO[AlbumDao - Room/SQLite]
+    end
+
+    TS -- "observa StateFlow" --> ST
+    ST -- "exposto por" --> VM
+    VM -- "chama suspend fun" --> REPO
+    REPO -.implementado por.-> IMPL
+    IMPL -- "1. tenta rede" --> API
+    IMPL -- "2. persiste e lê cache" --> DAO
+    IMPL -- "Result.Success/Error" --> VM
+```
+
+**Passo a passo (tela de equipes):**
+
+1. **View** — `TeamsScreen` coleta `viewModel.uiState` (um `StateFlow<TeamsUiState>`) e
+   renderiza *loading*, a grade de equipes ou a mensagem de erro.
+2. **ViewModel** — `TeamsViewModel.load()` roda em `viewModelScope` e chama
+   `repository.getCompetition("WC")`, atualizando o `TeamsUiState` conforme o resultado.
+3. **Domain** — o ViewModel só conhece a interface `AlbumRepository` e o `Result`
+   (`Success`/`Error`), sem detalhes de rede ou banco.
+4. **Data** — `AlbumRepositoryImpl` executa a estratégia **offline-first**: tenta
+   sincronizar com a `FootballApi` (Retrofit) e grava no cache Room (`AlbumDao`); se a rede
+   falhar, recai sobre os dados persistidos, garantindo que a UI sempre receba dados quando
+   houver cache. Os DTOs são convertidos em entidades e modelos de domínio por `TeamMapper`.
+
+Esse desacoplamento é o que permite testar cada camada isoladamente (ver seção **Testes**).
+
+## Integração de Dados
+
+Os dados vêm da **API REST pública [football-data.org](https://www.football-data.org)**
+(v4), consumida via **Retrofit + Moshi**. A autenticação é feita por um header
+`X-Auth-Token` injetado automaticamente pelo `AuthInterceptor` (o token vem do
+`BuildConfig`, nunca hardcoded). As imagens são servidas por uma **API privada de fotos**
+(`photo-api/`) protegida por chave.
+
+### Endpoints consumidos (`FootballApi`)
+
+| Método | Endpoint | Uso no app |
+| --- | --- | --- |
+| `getCompetition` | `GET /v4/competitions/WC` | Metadados da Copa (nome, edição, emblema) |
+| `getCompetitionTeams` | `GET /v4/competitions/WC/teams` | As 48 seleções participantes |
+| `getTeam` | `GET /v4/teams/{id}` | Detalhe da seleção + elenco |
+| `getScorers` | `GET /v4/competitions/WC/scorers?limit=100` | Estatísticas (jogos/gols/assistências) |
+
+### Exemplo de requisição
+
+```bash
+curl -H "X-Auth-Token: <FOOTBALL_API_TOKEN>" \
+  https://api.football-data.org/v4/competitions/WC/scorers?limit=100
+```
+
+### Exemplo de resposta (recortada)
+
+```json
+{
+  "scorers": [
+    {
+      "player": { "id": 3218, "name": "Lionel Messi", "position": "Offence" },
+      "team": { "id": 762, "name": "Argentina" },
+      "playedMatches": 8,
+      "goals": 8,
+      "assists": 4
+    }
+  ]
+}
+```
+
+O `AlbumRepositoryImpl` casa esses artilheiros pelo `id` do jogador e enriquece o elenco
+com as estatísticas reais; jogadores fora do ranking (o plano gratuito cobre ~100
+artilheiros) permanecem com estatísticas zeradas em vez de quebrar a sincronização.
+Os títulos de Copa exibidos nos escudos vêm de um **mapa fixo por seleção** (dados
+históricos), não da API — Brasil 5×, Alemanha 4×, Argentina 3×, etc.
+
+## Testes
+
+O projeto possui **testes unitários funcionais** (JUnit 4 + MockK + `coroutines-test`)
+cobrindo as três camadas do MVVM. Execute com:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+| Arquivo | Camada | O que valida |
+| --- | --- | --- |
+| `TeamMapperTest` | Data (mapper) | Mapa fixo de títulos por seleção; enriquecimento de estatísticas; parsing de cores |
+| `AlbumRepositoryImplTest` | Data (repositório) | Estratégia offline-first (cache × erro) e enriquecimento pelos artilheiros |
+| `TeamsViewModelTest` | UI (ViewModel) | Projeção de `Result` do repositório no `TeamsUiState` (sucesso e erro) |
+
 ## Convenções de Código
+
 
 As regras de desenvolvimento estão documentadas em `.github/instructions/` e devem ser
 seguidas obrigatoriamente. Resumo:

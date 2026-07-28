@@ -12,6 +12,12 @@ const PHOTOS_DIR = path.join(__dirname, 'photos');
 
 const app = express();
 
+// Log simples de cada requisição para depuração.
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} <- ${req.ip}`);
+  next();
+});
+
 /**
  * Health check público (sem auth) para readiness/monitoramento.
  * Registrado ANTES do middleware de auth para não exigir chave.
@@ -48,6 +54,7 @@ function servePhoto(kind) {
       for (const [ext, contentType] of IMG_EXTS) {
         const file = path.join(PHOTOS_DIR, kind, `${id}.${ext}`);
         if (fs.existsSync(file)) {
+          console.log(`  -> ${kind}/${id}: servindo arquivo local ${id}.${ext}`);
           res.type(contentType);
           res.set('Cache-Control', 'public, max-age=86400');
           return res.sendFile(file);
@@ -57,6 +64,7 @@ function servePhoto(kind) {
     const name = (req.query.name || `#${id}`).toString();
     const fallback =
       `https://ui-avatars.com/api/?background=random&size=256&name=${encodeURIComponent(name)}`;
+    console.log(`  -> ${kind}/${id}: sem arquivo local, redirecionando para avatar (${name})`);
     return res.redirect(302, fallback);
   };
 }

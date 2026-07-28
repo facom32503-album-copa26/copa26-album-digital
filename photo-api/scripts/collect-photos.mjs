@@ -52,6 +52,30 @@ const SPORTSDB_KEY = process.env.SPORTSDB_API_KEY || '3'; // '3' = chave de test
 const APIFOOTBALL_KEY = process.env.APIFOOTBALL_KEY || '';
 const IMG_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 
+/**
+ * `fetch` com novas tentativas e backoff exponencial. As fontes gratuitas
+ * (TheSportsDB chave '3', Wikipedia) aplicam limite por minuto e respondem 429
+ * quando estouramos a cota; sem retry, jogadores acabam ficando sem foto de
+ * forma intermitente. Reencaminha status 429/5xx e erros de rede.
+ */
+async function fetchWithRetry(url, options = {}, retries = 3, baseDelayMs = 1500) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.status === 429 || res.status >= 500) {
+        if (attempt === retries) return res;
+        const wait = baseDelayMs * 2 ** attempt;
+        await sleep(wait);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await sleep(baseDelayMs * 2 ** attempt);
+    }
+  }
+}
+
 /** Já existe alguma foto (qualquer extensão) para este id? */
 function hasPhoto(dir, id) {
   return IMG_EXTS.some((ext) => fs.existsSync(path.join(dir, `${id}.${ext}`)));
@@ -74,7 +98,7 @@ function extFromUrl(url) {
 async function apiFootballPhoto(name) {
   if (!APIFOOTBALL_KEY) return null;
   const url = `https://v3.football.api-sports.io/players/profiles?search=${encodeURIComponent(name)}`;
-  const res = await fetch(url, { headers: { 'x-apisports-key': APIFOOTBALL_KEY } });
+  const res = await fetchWithRetry(url, { headers: { 'x-apisports-key': APIFOOTBALL_KEY } });
   if (!res.ok) return null;
   const data = await res.json();
   return data?.response?.[0]?.player?.photo || null;
@@ -89,7 +113,7 @@ async function sportsDbPhoto(name) {
   const url =
     `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_KEY}` +
     `/searchplayers.php?p=${encodeURIComponent(name)}`;
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+  const res = await fetchWithRetry(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!res.ok) return null;
   const data = await res.json();
   const players = data?.player;
@@ -102,7 +126,7 @@ async function sportsDbPhoto(name) {
 /** Fallback: foto do Wikipedia (originalimage tem a maior resolução). */
 async function wikiPhoto(name) {
   const title = encodeURIComponent(name.replace(/ /g, '_'));
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://en.wikipedia.org/api/rest_v1/page/summary/${title}`,
     { headers: { 'User-Agent': USER_AGENT } },
   );
@@ -125,7 +149,7 @@ async function resolvePhotoUrl(name) {
 async function downloadPhoto(url, dir, id) {
   const ext = extFromUrl(url);
   if (!ext) return false;
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+  const res = await fetchWithRetry(url, { headers: { 'User-Agent': USER_AGENT } });
   if (!res.ok) return false;
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length < 512) return false; // provável placeholder/imagem inválida

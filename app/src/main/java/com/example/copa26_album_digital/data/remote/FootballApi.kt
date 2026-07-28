@@ -7,6 +7,7 @@ import com.example.copa26_album_digital.data.remote.dto.ScorersDto
 import com.example.copa26_album_digital.data.remote.dto.TeamDto
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Contrato Retrofit para a API REST football-data.org (v4).
@@ -38,5 +39,8 @@ interface FootballApi {
 
     /** Lista os artilheiros de uma competição para enriquecer estatísticas. */
     @GET("v4/competitions/{code}/scorers")
-    suspend fun getScorers(@Path("code") code: String): ScorersDto
+    suspend fun getScorers(
+        @Path("code") code: String,
+        @Query("limit") limit: Int = 100,
+    ): ScorersDto
 }
