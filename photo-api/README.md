@@ -69,11 +69,23 @@ Projeto acadêmico local: as imagens são usadas apenas para fins didáticos.
 > seleção. O enquadramento é do peito para cima, então o uniforme aparece pouco.
 > Nenhuma fonte gratuita oferece uniforme de seleção com cobertura comparável.
 
-## Publicar no Firebase Hosting (para o app funcionar sem servidor local)
+## Como as fotos chegam ao app
 
-Sem isto, só quem roda o servidor Node na própria máquina vê as fotos — quem
-apenas instala o APK não vê nada. O Hosting serve os arquivos estáticos por
-HTTPS, de graça, e o app passa a funcionar em qualquer dispositivo.
+As fotos são **versionadas** neste repositório (`photos/`, ~2,5 MB em WebP). O app,
+por padrão, as busca direto do GitHub:
+
+```
+https://raw.githubusercontent.com/facom32503-album-copa26/copa26-album-digital/main/photo-api/photos/
+```
+
+Isso significa que **um clone limpo já exibe as figurinhas**, sem servidor local,
+sem deploy e sem `local.properties`. Só funciona depois que as fotos chegam à
+branch `main`.
+
+### Alternativa: Firebase Hosting
+
+O `raw.githubusercontent.com` não é uma CDN de verdade (cache de 5 min e limites
+para uso anônimo). Para algo mais robusto, publique no Firebase Hosting:
 
 ```bash
 npm install -g firebase-tools

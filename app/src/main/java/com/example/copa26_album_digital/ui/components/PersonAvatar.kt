@@ -20,12 +20,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.copa26_album_digital.ui.theme.AlbumSurface
 import com.example.copa26_album_digital.ui.theme.AlbumYellow
 
-/**
- * Avatar circular de uma pessoa (jogador ou técnico). Enquanto a foto carrega —
- * ou quando nao existe foto para aquele id — exibe as iniciais do nome, sem
- * depender de rede nem de servico externo. Imagem informativa, entao recebe
- * `contentDescription` com o nome.
- */
+/** Avatar circular de jogador ou técnico; sem foto, exibe as iniciais do nome. */
 @Composable
 fun PersonAvatar(
     photoUrl: String,
@@ -47,7 +42,6 @@ fun PersonAvatar(
     )
 }
 
-/** Iniciais do nome como substituto da foto, na paleta do album. */
 @Composable
 private fun PersonInitials(
     name: String,
@@ -67,7 +61,6 @@ private fun PersonInitials(
     }
 }
 
-/** Primeira letra do primeiro e do ultimo nome (ex.: "Lionel Messi" -> "LM"). */
 private fun initialsOf(name: String): String {
     val parts = name.trim().split(" ").filter { it.isNotBlank() }
     return when {

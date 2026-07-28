@@ -26,7 +26,7 @@ const ROOT = path.join(__dirname, '..');
 
 const TOKEN = process.env.FOOTBALL_API_TOKEN;
 const COMPETITION = process.env.COMPETITION_CODE || 'WC';
-// Lista opcional de selecoes a coletar (padrao: todas). Ex.: TEAMS="Brazil,Spain"
+// Ex.: TEAMS="Brazil,Spain" (padrao: todas)
 const ONLY_TEAMS = (process.env.TEAMS || '')
   .split(',')
   .map((t) => t.trim())
@@ -140,13 +140,7 @@ async function wikiPhoto(name) {
   return data?.originalimage?.source || data?.thumbnail?.source || null;
 }
 
-/**
- * Resolve a melhor URL de foto testando as fontes em ordem de eficacia medida.
- * TheSportsDB vem primeiro: numa amostra de 162 pessoas de 6 selecoes acertou
- * 98%, quase sempre com `strCutout` (recorte 500x500 e fundo transparente, que e
- * o formato de figurinha). A Wikipedia ficou por ultimo porque limita agressivamente
- * (HTTP 429) e inviabiliza uma coleta em lote.
- */
+/** Fontes em ordem de eficacia medida: TheSportsDB acerta 98%; Wikipedia limita em lote (429). */
 async function resolvePhotoUrl(name) {
   return (
     (await sportsDbPhoto(name)) ||

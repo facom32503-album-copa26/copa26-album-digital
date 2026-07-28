@@ -129,7 +129,7 @@ class AlbumRepositoryImpl(
         persistSquad(teamId = teamId, squad = team.squad.orEmpty(), statsByPlayerId = statsByPlayerId)
     }
 
-    /** Conta os jogos do jogador (o ranking só cobre quem marcou gol); custa 1 requisição, então é sob demanda. */
+    /** Jogos do jogador; o ranking só cobre quem marcou gol. Custa 1 requisição, por isso é sob demanda. */
     private suspend fun syncPlayerGames(player: PlayerEntity): PlayerEntity {
         val code = competitionCodeOf(player.teamId) ?: return player
         val games = runCatching { api.getPersonMatches(player.id, code).resultSet.count }
@@ -141,7 +141,6 @@ class AlbumRepositoryImpl(
         return player.copy(games = games).also { dao.upsertPlayers(listOf(it)) }
     }
 
-    /** Código da competição a que a equipe pertence, resolvido pelo cache. */
     private suspend fun competitionCodeOf(teamId: Int): String? =
         dao.getTeam(teamId)?.competitionId?.let { compId ->
             dao.getCompetitions().firstOrNull { it.id == compId }?.code

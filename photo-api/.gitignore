@@ -1,6 +1,10 @@
 node_modules/
 .env
-photos/players/*
-photos/coaches/*
-!photos/players/.gitkeep
-!photos/coaches/.gitkeep
+
+# As fotos .webp sao versionadas; os originais grandes, nao.
+photos/players/*.png
+photos/players/*.jpg
+photos/players/*.jpeg
+photos/coaches/*.png
+photos/coaches/*.jpg
+photos/coaches/*.jpeg

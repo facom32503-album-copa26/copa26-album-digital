@@ -45,13 +45,7 @@ interface FootballApi {
         @Query("limit") limit: Int = ALL_SCORERS_LIMIT,
     ): ScorersDto
 
-    /**
-     * Partidas de um jogador na competição. Serve para contar jogos disputados de
-     * quem não aparece no ranking de artilheiros (goleiros, defensores).
-     *
-     * `limit` precisa cobrir todas as partidas: `resultSet.count` reflete o
-     * conjunto paginado, então um limite baixo devolve um total menor que o real.
-     */
+    /** Partidas do jogador; `resultSet.count` segue o `limit`, que precisa cobrir todas elas. */
     @GET("v4/persons/{id}/matches")
     suspend fun getPersonMatches(
         @Path("id") id: Int,
@@ -60,10 +54,8 @@ interface FootballApi {
     ): PersonMatchesDto
 
     companion object {
-        /** Acima do total de artilheiros de uma Copa (179 em 2026), para trazer a lista inteira. */
+        // 179 artilheiros na Copa 2026; 200 traz a lista inteira.
         const val ALL_SCORERS_LIMIT = 200
-
-        /** Teto de paginação aceito pela API. */
         const val MAX_PAGE_LIMIT = 100
     }
 }

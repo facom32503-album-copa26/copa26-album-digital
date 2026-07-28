@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
-"""Reduz as fotos baixadas para WebP 320px, preservando a transparencia do recorte.
-
-Os recortes do TheSportsDB vem em PNG 500x500 (~230 KB cada), pesado demais para
-servir por CDN. Em WebP 320px a media cai para ~15 KB sem perda visivel nos
-tamanhos em que o app exibe (56dp na grade, 120dp no detalhe).
-
-Uso: python3 scripts/optimize-photos.py
-Requer: Pillow (pip install Pillow)
-"""
+"""Reduz as fotos para WebP 320px (36 MB -> 2,5 MB nas 6 selecoes). Requer Pillow."""
 import glob
 import os
 import sys

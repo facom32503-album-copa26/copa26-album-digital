@@ -12,11 +12,11 @@ val localProperties: Properties = Properties().apply {
     if (propsFile.exists()) propsFile.inputStream().use { load(it) }
 }
 val footballApiToken: String = localProperties.getProperty("FOOTBALL_API_TOKEN", "")
-// API privada de fotos: mantemos football-data.org como fonte de dados e servimos
-// apenas as imagens por conta própria, protegidas por uma chave privada.
-// 10.0.2.2 = localhost da máquina host visto de dentro do emulador Android.
-val photoApiBaseUrl: String =
-    localProperties.getProperty("PHOTO_API_BASE_URL", "http://10.0.2.2:3000/")
+// Padrão: fotos versionadas em photo-api/photos/, servidas pelo GitHub.
+val photoApiBaseUrl: String = localProperties.getProperty(
+    "PHOTO_API_BASE_URL",
+    "https://raw.githubusercontent.com/facom32503-album-copa26/copa26-album-digital/main/photo-api/photos/",
+)
 val photoApiKey: String =
     localProperties.getProperty("PHOTO_API_KEY", "copa26-dev-key")
 

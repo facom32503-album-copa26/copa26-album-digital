@@ -29,7 +29,6 @@ private val WORLD_CUP_TITLES: Map<Int, Int> = mapOf(
     760 to 2, // Espanha (2010 e 2026)
 )
 
-/** URL estatica da foto, indexada pelo id do football-data.org; sem foto, o avatar cai nas iniciais (ver PersonAvatar). */
 private fun personPhotoUrl(kind: String, id: Int): String =
     "${BuildConfig.PHOTO_API_BASE_URL.trimEnd('/')}/$kind/$id.webp"
 
