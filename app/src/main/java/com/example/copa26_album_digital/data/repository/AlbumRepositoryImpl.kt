@@ -121,7 +121,7 @@ class AlbumRepositoryImpl(
     private suspend fun syncTeam(teamId: Int) {
         val team = api.getTeam(teamId)
 
-        // Plano gratuito não expõe coach/squad: usa o seed como fallback.
+        // Fallback para quando a API não retornar coach/squad (rate limit ou instabilidade).
         val coach = team.coach?.toEntity(teamId) ?: squadSeed.coachFor(teamId)
         coach?.let { dao.upsertCoach(it) }
 

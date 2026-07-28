@@ -6,9 +6,10 @@ import com.example.copa26_album_digital.data.local.entity.PlayerEntity
 /**
  * Fonte de dados local (seed) com elencos curados.
  *
- * O plano gratuito da football-data.org não expõe `squad`/`coach` no endpoint de
- * time, então usamos este seed como fallback para garantir o requisito de "5
- * jogadores + treinador por equipe". As chaves são os `id` reais dos times na API.
+ * Com um `FOOTBALL_API_TOKEN` válido, `squad`/`coach` vêm inline mesmo no plano
+ * gratuito — este seed serve como fallback apenas quando a API está indisponível
+ * (rate limit de 10 req/min ou instabilidade). As chaves são os `id` reais dos
+ * times na API.
  */
 class SquadSeed {
 
