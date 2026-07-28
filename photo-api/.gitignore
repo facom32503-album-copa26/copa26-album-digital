@@ -1,0 +1,10 @@
+node_modules/
+.env
+
+# As fotos .webp sao versionadas; os originais grandes, nao.
+photos/players/*.png
+photos/players/*.jpg
+photos/players/*.jpeg
+photos/coaches/*.png
+photos/coaches/*.jpg
+photos/coaches/*.jpeg

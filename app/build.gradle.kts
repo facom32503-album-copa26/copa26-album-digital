@@ -1,7 +1,24 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
+
+// Lê segredos/config de local.properties (fora do controle de versão).
+val localProperties: Properties = Properties().apply {
+    val propsFile = rootProject.file("local.properties")
+    if (propsFile.exists()) propsFile.inputStream().use { load(it) }
+}
+val footballApiToken: String = localProperties.getProperty("FOOTBALL_API_TOKEN", "")
+// Padrão: fotos versionadas em photo-api/photos/, servidas pelo GitHub.
+val photoApiBaseUrl: String = localProperties.getProperty(
+    "PHOTO_API_BASE_URL",
+    "https://raw.githubusercontent.com/facom32503-album-copa26/copa26-album-digital/main/photo-api/photos/",
+)
+val photoApiKey: String =
+    localProperties.getProperty("PHOTO_API_KEY", "copa26-dev-key")
 
 android {
     namespace = "com.example.copa26_album_digital"
@@ -19,6 +36,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Injeta o token no BuildConfig — nunca hardcoded no código-fonte.
+        buildConfigField("String", "FOOTBALL_API_TOKEN", "\"$footballApiToken\"")
+        // API privada de fotos (base + chave de auth).
+        buildConfigField("String", "PHOTO_API_BASE_URL", "\"$photoApiBaseUrl\"")
+        buildConfigField("String", "PHOTO_API_KEY", "\"$photoApiKey\"")
     }
 
     buildTypes {
@@ -34,6 +57,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -41,12 +68,29 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

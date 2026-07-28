@@ -1,0 +1,15 @@
+# Copie este arquivo para "local.properties" (raiz do projeto) e preencha os
+# valores. "local.properties" nunca é versionado — cada dev usa suas próprias
+# chaves.
+
+# sdk.dir=/caminho/para/o/Android/sdk   # normalmente já preenchido pelo Android Studio
+
+# Token da API football-data.org (obtenha em https://www.football-data.org/client/register)
+FOOTBALL_API_TOKEN=SEU_TOKEN_AQUI
+
+# Fotos de jogadores/tecnicos — ver photo-api/README.md
+# Entrega: URL publica do Firebase Hosting (funciona em qualquer aparelho).
+PHOTO_API_BASE_URL=https://SEU-PROJETO.web.app/
+# Desenvolvimento com o servidor Node local (emulador):
+# PHOTO_API_BASE_URL=http://10.0.2.2:3000/
+PHOTO_API_KEY=copa26-dev-key
